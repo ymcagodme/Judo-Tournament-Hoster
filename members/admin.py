@@ -39,10 +39,12 @@ class MatchAdmin(admin.ModelAdmin):
         competitors = obj.competitors.all()
         try: return competitors[0]
         except IndexError: return "N/A"
+    p1_name.short_description = 'Competitor #1'
     def p2_name(self, obj):
         competitors = obj.competitors.all()
         try: return competitors[1]
         except IndexError: return "N/A"
+    p2_name.short_description = 'Competitor #2'
     def match_is_finished(self, obj):
         if obj.winner == 0:
             return False
