@@ -1,6 +1,5 @@
 import os
 WORKING_PATH = os.path.dirname(os.path.abspath(__file__))
-print WORKING_PATH
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -14,7 +13,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'tournament.db',                      # Or path to database file if using sqlite3.
+        'NAME': os.path.join(WORKING_PATH, 'tournament.db'),                      # Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.

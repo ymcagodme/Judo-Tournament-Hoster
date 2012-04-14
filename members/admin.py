@@ -4,7 +4,7 @@ from members.models import Member, Mat, Division, Match
 
 class MemberAdmin(admin.ModelAdmin):
     list_display = ('last_name', 'first_name', 'dojo', 'division')
-    search_fields = ['last_name', 'first_name', 'dojo', 'division']
+    search_fields = ['last_name', 'first_name', 'dojo']
 
 class DivisionAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'gender', 'age', 'weight', 'rank', 'mat')
