@@ -2,4 +2,5 @@ Use django to build a tournament hoster
 
 Before use:
 
+If you change the folder name,
 you may need to go to settings.py and change the ROOT_URLCONF
