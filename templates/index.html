@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-us" xml:lang="en-us" >
+<head>
+<meta name="viewport" content="width = device-width">
+<title>Norwalk Judo</title>
+
+<link type="text/css" rel="stylesheet" href="/static/jquery-ui-1.8.18.custom.css">
+<link type="text/css" rel="stylesheet" href="/static/main.css">
+<link type="text/css" rel="stylesheet" href="/static/table.css">
+<link type="text/css" rel="stylesheet" href="/static/ColVis.css">
+<link type="text/css" rel="stylesheet" href="/static/TableTools_JUI.css">
+<link type="text/css" rel="stylesheet" href="/static/jquery.dataTables_themeroller.css">
+<script type="text/javascript" src="/static/js/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery-ui-1.8.18.custom.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery.dataTables.js"></script>
+<script type="text/javascript" src="/static/js/ColVis.js"></script>
+<script type="text/javascript" src="/static/js/TableTools.js"></script>
+<script type="text/javascript" src="/static/js/ZeroClipboard.js"></script>
+<script type="text/javascript" src="/static/js/FixedColumns.js"></script>
+<script type="text/javascript" src="/static/js/KeyTable.js"></script>
+<script src="/static/js/highcharts.js"></script>
+
+<script type="text/javascript">
+$.ajaxSetup({ 
+     beforeSend: function(xhr, settings) {
+         function getCookie(name) {
+             var cookieValue = null;
+             if (document.cookie && document.cookie != '') {
+                 var cookies = document.cookie.split(';');
+                 for (var i = 0; i < cookies.length; i++) {
+                     var cookie = jQuery.trim(cookies[i]);
+                     // Does this cookie string begin with the name we want?
+                 if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                     break;
+                 }
+             }
+         }
+         return cookieValue;
+         }
+         if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+             // Only send the token to relative URLs i.e. locally.
+             xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+         }
+     } 
+});
+</script>
+
+<script type="text/javascript">
+(function($){
+	var table = {
+		iNext: false,
+		dNext: false,
+		onDocumentReady: function() {
+			var self = table;
+
+			$.fn.dataTableExt.oApi.fnReloadAjax = function ( oSettings, sNewSource, fnCallback, bStandingRedraw )
+			{
+			    if ( typeof sNewSource != 'undefined' && sNewSource != null )
+			    {
+				oSettings.sAjaxSource = sNewSource;
+			    }
+			    this.oApi._fnProcessingDisplay( oSettings, true );
+			    var that = this;
+			    var iStart = oSettings._iDisplayStart;
+			    var aData = [];
+			 
+			    this.oApi._fnServerParams( oSettings, aData );
+			     
+			    oSettings.fnServerData( oSettings.sAjaxSource, aData, function(json) {
+				/* Clear the old information from the table */
+				that.oApi._fnClearTable( oSettings );
+				 
+				/* Got the data - add it to the table */
+				var aData =  (oSettings.sAjaxDataProp !== "") ?
+				    that.oApi._fnGetObjectDataFn( oSettings.sAjaxDataProp )( json ) : json;
+				 
+				for ( var i=0 ; i<aData.length ; i++ )
+				{
+				    that.oApi._fnAddData( oSettings, aData[i] );
+				}
+				 
+				oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
+				that.fnDraw();
+				 
+				if ( typeof bStandingRedraw != 'undefined' && bStandingRedraw === true )
+				{
+				    oSettings._iDisplayStart = iStart;
+				    that.fnDraw( false );
+				}
+				 
+				that.oApi._fnProcessingDisplay( oSettings, false );
+				 
+				/* Callback user function - for event handlers etc */
+				if ( typeof fnCallback == 'function' && fnCallback != null )
+				{
+				    fnCallback( oSettings );
+				}
+			    }, oSettings );
+			}
+
+			oTable = $('#member_set').dataTable({
+				"sDom": '<"H"r>t<"F"ip>',
+				"bProcessing": true,
+				"aaSorting": [[2, 'asc']],
+				"bFilter": false,
+				"sScrollX": "100%",
+				"bScrollCollapse": true,
+				"bJQueryUI": true,
+				"sAjaxSource": 'query_all',
+				"sAjaxDataProp": 'aaData',
+				"aoColumns":[
+					{"mDataProp": "first_name", "sClass": 'center'},
+					{"mDataProp": "last_name" , "sClass": 'center'},
+					{"mDataProp": "dojo" , "sClass": 'center'},
+					{"mDataProp": "gender" , "sClass": 'center'},
+					{"mDataProp": "age" , "sClass": 'center'},
+					{"mDataProp": "weight" , "sClass": 'center'},
+					{"mDataProp": "place" , "sClass": 'center'},
+				]
+			});
+
+			oTableDojo = $('#dojo_set').dataTable({
+				"sDom": '<"H"r>t<"F"ip>',
+				"iDisplayLength": 6,
+				"bProcessing": true,
+				"aaSorting": [[1, 'desc']],
+				"bFilter": false,
+				"sScrollX": "100%",
+				"bScrollCollapse": true,
+				"bJQueryUI": true,
+				"sAjaxSource": 'query_dojo',
+				"sAjaxDataProp": 'aaData',
+				"aoColumns":[
+					{"mDataProp": "dojo", "sClass": 'center'},
+					{"mDataProp": "score" , "sClass": 'center'},
+				]
+			});
+
+			// resizing handler
+			$(window).bind('resize', function(){
+				oTable.fnAdjustColumnSizing();
+			});
+
+			// Automatically go to next page
+			setInterval("Pane.table.autoNavigate()", 5000);
+
+		},//onDocumentReady end
+		autoNavigate: function(){
+			var self = table;
+			if( self.iNext && self.dNext ){
+				self.iNext = false;
+				self.dNext = false;
+				oTable.fnReloadAjax();
+				oTableDojo.fnReloadAjax();
+			}else{
+				self.iNavigate();
+				self.dNavigate();
+			}
+		},
+		iNavigate: function(){
+			var self = table;
+			var nextBtn = $('.individual_container #member_set_next');
+			if( !(nextBtn.hasClass('ui-state-disabled')) ){
+				nextBtn.click();		
+				self.iNext = nextBtn.hasClass('ui-state-disabled');
+			} else{
+				self.iNext = true;
+			}
+		},
+		dNavigate: function(){
+			var self = table;
+			var nextBtn = $('.dojo_container #dojo_set_next');
+			var previousBtn = $('.dojo_container #dojo_set_previous');
+			if( !(nextBtn.hasClass('ui-state-disabled')) ){
+				nextBtn.click();		
+			} else{
+				oTableDojo.fnReloadAjax();
+				self.dNext = true;
+			}
+		},
+	};// End of table
+	var chart = {
+		onDocumentReady: function(){
+			var self = chart;
+			top5Chart = new Highcharts.Chart({
+			    chart: {
+				renderTo: 'ranking_chart',
+				type: 'bar'
+			    },
+			    title: {
+				text: 'TOP 5 Dojo'
+			    },
+			    subtitle: {
+				text: 'Live Broadcasting'
+			    },
+			    xAxis: [{
+				categories: [],
+				labels: {
+				    style:{
+				    	fontSize: '20px'
+				    }
+				},
+			    }],
+			    yAxis: {
+				min: 0,
+				title: {
+				    text: null
+				}
+			    },
+			    plotOptions: {
+				bar: {
+				    dataLabels: {
+					enabled: true
+				    }
+				}
+			    },
+			    credits: {
+				enabled: false
+			    },
+			    series: [{
+				name: 'Score',
+				data: []
+			    }]
+			});
+
+
+			completedChart = new Highcharts.Chart({
+			    chart: {
+				renderTo: 'completed_chart',
+			    },
+			    credits:{
+			    	enabled: false
+			    },
+			    title: {
+				text: 'Competition Completed Percentage'
+			    },
+			    plotOptions: {
+				pie: {
+					allowPointSelect: true,
+					cursor: 'pointer',
+					dataLabels: {
+						enabled: true,
+						style: {
+							fontSize: '14px'
+						},
+						color: '#000000',
+						connectorColor: '#000000',
+						formatter: function() {
+							return '<b>' + this.point.name + '</b>:' + this.percentage +' %';
+						}
+					},
+					showInLegend: false
+				}
+			    },
+			    series: [{
+				type: 'pie',
+				name: 'Completed Percentage',
+				data: [
+				]
+			    }]
+			});
+
+
+			self.updateChart();
+			setInterval('Pane.chart.updateChart()', 30000);
+			self.updateCompletedChart();
+			setInterval('Pane.chart.updateCompletedChart()', 30000);
+		},
+		updateChart: function(){
+			self = chart;	     
+			$('#ranking_chart').show('clip', {}, 1200);
+			$.ajax({
+				url: 'query_top5',
+				type: 'POST',
+				datatype: 'json',
+				cache: false,
+				success: function(rData){
+					console.log('SUCCESS');
+					console.log(rData);
+					r = rData;
+					s = r.score;
+					s = s.replace('[', '');
+					s = s.replace(']', '');
+					l = s.split(',');
+					score = new Array();
+					for(var i = 0; i < l.length; i++){
+						score.push(parseInt(l[i]));
+					}
+					top5Chart.xAxis[0].setCategories(rData.dojo);
+					top5Chart.series[0].setData(score);
+				},
+				error: function(){
+					console.log('ERROR');
+				}
+			});
+		},
+		updateCompletedChart: function(){
+			self = chart;	     
+			$('#completed_chart').show('clip', {}, 1200);
+			$.ajax({
+				url: 'query_completed',
+				success: function(rData){
+					completedChart.series[0].setData(rData.percent);
+					completedChart.render();
+				},
+			});
+		},
+	};
+	Pane = {
+		table: table,
+		chart: chart,
+		onDocumentReady: function() {
+			var self = Pane;
+			self.table.onDocumentReady();
+			self.chart.onDocumentReady();
+		},
+	};
+	$(Pane.onDocumentReady);
+})(jQuery);
+</script>
+
+</head>
+
+<body>        
+	<div class="top_container">
+		<div>
+		<img style="height:60px; vertical-align: middle;" src="/static/logo_norwalk.jpg" />
+		<span style="font-size: 28px;text-decoration: underline; font-weight:bold; font-variant:small-caps; color: red; font-family: Georgia, serif;">80th Anniversary Shigeo Tashima Memorial Judo Tournament April 1, 2012</span>
+		</div>
+		<hr />
+		<div class="individual_container">
+		<span style="color: blue; font-size: 20px;"></span>
+		<h2>Individual Ranking</h2>
+		<table id="member_set">
+			<thead>
+				<tr>
+					<th>First Name</th>
+					<th>Last Name</th>
+					<th>Dojo</th>
+					<th>Gender</th>
+					<th>Age</th>
+					<th>Weight</th>
+					<th>Place</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
+		</div>
+		<hr />
+
+		<div class="dojo_container">
+		<span style="color: blue; font-size: 20px;"></span>
+		<h2>Dojo Ranking</h2>
+		<table id="dojo_set">
+			<thead>
+				<tr>
+					<th>Dojo Title</th>
+					<th>Score</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
+		</div>
+	</div>
+
+	<div id="ranking_chart">
+	</div>
+
+	<div id="completed_chart">
+	</div>
+
+	<form action='/judo/query/' method="POST">
+		{% csrf_token %}
+	</form>
+
+</body>
+</html>
+

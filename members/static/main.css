@@ -1,0 +1,30 @@
+body{
+}
+
+.top_container{
+	width: 90%;
+	margin: 0px auto;
+	display: block;
+}
+.sep{
+	clear: both;
+}
+
+.dojo_container{
+	width: 25%;
+	float: left;
+}
+
+#ranking_chart{
+	float: left;
+	margin-left: 4em;
+	height:350px;
+	width: 400px;
+}
+
+#completed_chart{
+	float: left;
+	margin-left: 3em;
+	height:350px;
+	width: 360px;
+}
