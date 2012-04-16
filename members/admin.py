@@ -2,7 +2,20 @@ from django.contrib import admin
 from django import forms
 from members.models import Member, Mat, Division, Match
 
+class MatAdmin(admin.ModelAdmin):
+    def queryset(self, request):
+        if request.user.is_superuser:
+            qs = self.model._default_manager.all()
+        else:
+            qs = self.model._default_manager.filter(user=request.user)
+        return qs
+
 class MemberAdmin(admin.ModelAdmin):
+    def save_model(self, request, obj, form, change):
+        obj.user = request.user
+        obj.save()
+
+    exclude = ['user']
     list_display = ('last_name', 'first_name', 'dojo', 'division')
     search_fields = ['last_name', 'first_name', 'dojo']
 
@@ -31,27 +44,53 @@ class MatchForm(forms.ModelForm):
         self.fields['winner'] = forms.ChoiceField(choices=choices)
 
 class MatchAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'p1_name', 'p2_name', 'match_is_finished')
-    ordering = ['match_number']
-    filter_horizontal = ("competitors",)
-    form = MatchForm
     def p1_name(self, obj):
         competitors = obj.competitors.all()
         try: return competitors[0]
-        except IndexError: return "N/A"
+        except IndexError: return ""
     p1_name.short_description = 'Competitor #1'
+
     def p2_name(self, obj):
         competitors = obj.competitors.all()
         try: return competitors[1]
-        except IndexError: return "N/A"
+        except IndexError: return ""
     p2_name.short_description = 'Competitor #2'
+
+    def get_winner_name(self, obj):
+        try: winner = obj.competitors.filter(pk=obj.winner)[0]
+        except IndexError: winner = ''
+        return winner
+    get_winner_name.short_description = 'Winner'
+
     def match_is_finished(self, obj):
         if obj.winner == 0:
             return False
         return True
     match_is_finished.boolean = True
 
+    def queryset(self, request):
+        if request.user.is_superuser:
+            qs = self.model._default_manager.all()
+        else:
+            qs = self.model._default_manager.filter(mat__user=request.user)
+        return qs
+
+    list_filter = ('mat',)
+    _list_filter = list_filter
+    def changelist_view(self, request, extra_context=None): 
+        if request.user.is_superuser:
+            self.list_filter = self._list_filter
+        else:
+            self.list_filter = None
+        return super(MatchAdmin, self).changelist_view(request, extra_context)
+
+    list_display = ('__unicode__', 'p1_name', 'p2_name', 'get_winner_name', 'match_is_finished', 'mat')
+    ordering = ['mat', 'match_number']
+    filter_horizontal = ("competitors",)
+    form = MatchForm
+    # Should use queryset to implement the specific mat set!
+
 admin.site.register(Member, MemberAdmin)
 admin.site.register(Division, DivisionAdmin)
 admin.site.register(Match, MatchAdmin)
-admin.site.register(Mat)
+admin.site.register(Mat, MatAdmin)

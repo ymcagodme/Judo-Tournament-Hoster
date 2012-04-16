@@ -5,8 +5,8 @@ GENDER_CHOICE = (
     ('F', 'Female'),
 )
 
-
 class Mat(models.Model):
+    user = models.ForeignKey('auth.User')
     mat_number = models.CharField(max_length=10)
     def __unicode__(self):
         return "Mat #%s" % (self.mat_number,)
@@ -22,6 +22,7 @@ class Division(models.Model):
 
 class Member(models.Model):
     division = models.ForeignKey(Division, null=True, blank=True)
+    user = models.ForeignKey('auth.User')
     SCORE_CHOICE = (
         ('1st', '1st'),        
         ('2nd', '2nd'),        
@@ -39,10 +40,13 @@ class Member(models.Model):
         return '%s %s' % (self.first_name, self.last_name)
 
 class Match(models.Model):
-
+    mat = models.ForeignKey(Mat)
     competitors = models.ManyToManyField(Member, null=True, blank=True)
     match_number = models.IntegerField()
     winner = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'matches'
 
     def __unicode__(self):
         return "Match #%s" % (self.match_number, )
