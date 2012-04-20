@@ -12,12 +12,13 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 import json
 
-from members.models import Member
+from members.models import Member, Tournament
 
 from IPython import embed
 
 def index(request):
-    return render_to_response('index.html', {}, context_instance=RequestContext(request))
+    tournament = Tournament.objects.all()[0]
+    return render_to_response('index.html', {'title': tournament.title, 'logo_url': tournament.logo.url }, context_instance=RequestContext(request))
 
 def query_all(request):
     ip_addr = request.META['REMOTE_ADDR']

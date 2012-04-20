@@ -5,6 +5,15 @@ GENDER_CHOICE = (
     ('F', 'Female'),
 )
 
+class Tournament(models.Model):
+    title = models.CharField(max_length=200)
+    logo = models.ImageField(upload_to='logo/', blank=True)
+
+    def __unicode__(self):
+        return self.title
+    class Meta:
+        verbose_name = 'Tournament title'
+
 class Mat(models.Model):
     user = models.ForeignKey('auth.User')
     mat_number = models.CharField(max_length=10)
@@ -36,6 +45,7 @@ class Member(models.Model):
     age = models.CharField(max_length=10)
     weight = models.CharField(max_length=10, blank=True)
     place = models.CharField(max_length=10, choices=SCORE_CHOICE, blank=True)
+    check_in = models.BooleanField()
     def __unicode__(self):
         return '%s %s' % (self.first_name, self.last_name)
 

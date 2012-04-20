@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django import forms
-from members.models import Member, Mat, Division, Match
+from django.forms.util import ErrorList
+from members.models import Member, Mat, Division, Match, Tournament
+from django.http import HttpResponse, HttpResponseRedirect
 
 class MatAdmin(admin.ModelAdmin):
     def queryset(self, request):
@@ -10,14 +12,20 @@ class MatAdmin(admin.ModelAdmin):
             qs = self.model._default_manager.filter(user=request.user)
         return qs
 
+def make_check_in(modeladmin, request, queryset):
+    queryset.update(check_in=True)
+
 class MemberAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj.user = request.user
         obj.save()
 
     exclude = ['user']
-    list_display = ('last_name', 'first_name', 'dojo', 'division')
+    list_display = ('first_name', 'last_name', 'dojo', 'division', 'check_in')
+    list_filter = ['check_in']
+    ordering = ['dojo', 'last_name']
     search_fields = ['last_name', 'first_name', 'dojo']
+    actions = [make_check_in]
 
 class DivisionAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'gender', 'age', 'weight', 'rank', 'mat')
@@ -88,9 +96,20 @@ class MatchAdmin(admin.ModelAdmin):
     ordering = ['mat', 'match_number']
     filter_horizontal = ("competitors",)
     form = MatchForm
-    # Should use queryset to implement the specific mat set!
+
+class TournamentAdmin(admin.ModelAdmin):
+    def add_view(self, request):
+        if request.method == "POST":
+            if Tournament.objects.count() >= 1:
+                # redirect to a page saying 
+                # you can't create more than one
+                return HttpResponse('You only can have one tournament description at the time.')
+        return super(TournamentAdmin, self).add_view(request)
+
+
 
 admin.site.register(Member, MemberAdmin)
 admin.site.register(Division, DivisionAdmin)
 admin.site.register(Match, MatchAdmin)
 admin.site.register(Mat, MatAdmin)
+admin.site.register(Tournament, TournamentAdmin)
