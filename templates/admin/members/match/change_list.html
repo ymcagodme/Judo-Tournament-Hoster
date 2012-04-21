@@ -1,0 +1,13 @@
+
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+{% block object-tools-items %}
+<li>
+<a href="add_multiple/{% if is_popup %}?_popup=1{% endif %}" class="addlink">
+{% blocktrans with cl.opts.verbose_name as name %}Create Multiple {{ name }}{% endblocktrans %}</a>
+</li>
+<li>
+<a href="add/{% if is_popup %}?_popup=1{% endif %}" class="addlink">
+{% blocktrans with cl.opts.verbose_name as name %}Create {{ name }}{% endblocktrans %}</a>
+</li>
+{% endblock %}

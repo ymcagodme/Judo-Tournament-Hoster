@@ -30,6 +30,7 @@ class MemberAdmin(admin.ModelAdmin):
 class DivisionAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'gender', 'age', 'weight', 'rank', 'mat')
     search_fields = ['mat', 'gender', 'age', 'weight', 'rank']
+    filter_horizontal = ("match",)
     
 class MatchForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):

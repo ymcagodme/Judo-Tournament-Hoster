@@ -22,6 +22,7 @@ class Mat(models.Model):
 
 class Division(models.Model):
     mat = models.ForeignKey(Mat, null=True, blank=True)
+    match = models.ManyToManyField('Match', null=True, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICE)
     age = models.CharField(max_length=10, blank=True)
     weight = models.CharField(max_length=10, blank=True)
@@ -59,6 +60,6 @@ class Match(models.Model):
         verbose_name_plural = 'matches'
 
     def __unicode__(self):
-        return "Match #%s" % (self.match_number, )
+        return "Match #%s @ %s" % (self.match_number, self.mat)
 
 #TODO: division_choice / mat_choice ...etc.

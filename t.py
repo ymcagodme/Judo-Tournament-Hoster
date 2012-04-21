@@ -11,6 +11,7 @@ for l in reader:
     new_member.dojo = l[2]
     new_member.gender = l[3]
     new_member.age = l[4]
+    new_member.user_id = 1
     new_member.save()
 
 file.close()
