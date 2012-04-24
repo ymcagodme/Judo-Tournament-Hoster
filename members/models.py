@@ -1,4 +1,13 @@
 from django.db import models
+from django.core.files import File
+from django.core.files.base import ContentFile
+
+from PyQRNative import *
+
+from cStringIO import StringIO
+
+from IPython import embed
+
 
 GENDER_CHOICE = (
     ('M', 'Male'),
@@ -47,8 +56,45 @@ class Member(models.Model):
     weight = models.CharField(max_length=10, blank=True)
     place = models.CharField(max_length=10, choices=SCORE_CHOICE, blank=True)
     check_in = models.BooleanField()
+    qr_image = models.ImageField(
+            upload_to="qr_code/",
+            null=True,
+            blank=True,
+            editable=False
+    )
+
     def __unicode__(self):
         return '%s %s' % (self.first_name, self.last_name)
+
+def member_pre_save(sender, instance, **kwargs):    
+    if not instance.pk:
+        instance._QRCODE = True
+    else:
+        if hasattr(instance, '_QRCODE'):
+            instance._QRCODE = False
+        else:
+            instance._QRCODE = True
+models.signals.pre_save.connect(member_pre_save, sender=Member)
+
+def member_post_save(sender, instance, **kwargs):
+    if instance._QRCODE:
+        instance._QRCODE = False
+        if instance.qr_image:
+            instance.qr_image.delete()
+        qr = QRCode(4, QRErrorCorrectLevel.H)
+        qr.addData(str(instance.pk)) # Only accept string
+        qr.make()
+        image = qr.makeImage()
+        ##Save image to string buffer
+        image_buffer = StringIO()
+        image.save(image_buffer, format='JPEG')
+        image_buffer.seek(0)
+        ###Here we use django file storage system to save the image.
+        file_name = '%s %s.jpg' % (instance.first_name, instance.last_name)
+        file_object = File(image_buffer, file_name)
+        content_file = ContentFile(file_object.read())
+        instance.qr_image.save(file_name, content_file, save=True)
+models.signals.post_save.connect(member_post_save, sender=Member)
 
 class Match(models.Model):
     mat = models.ForeignKey(Mat)

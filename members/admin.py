@@ -20,8 +20,14 @@ class MemberAdmin(admin.ModelAdmin):
         obj.user = request.user
         obj.save()
 
+    def qr_code(self, obj):
+        try: url = obj.qr_image.url
+        except ValueError: return ''
+        return '<img src="%s" alt="" />' % url
+    qr_code.allow_tags = True
+
     exclude = ['user']
-    list_display = ('first_name', 'last_name', 'dojo', 'division', 'check_in')
+    list_display = ('first_name', 'last_name', 'dojo', 'division', 'check_in', 'qr_code')
     list_filter = ['check_in']
     ordering = ['dojo', 'last_name']
     search_fields = ['last_name', 'first_name', 'dojo']
