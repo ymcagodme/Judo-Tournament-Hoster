@@ -4,14 +4,14 @@
 <meta name="viewport" content="width = device-width">
 <title>Norwalk Judo</title>
 
-<link type="text/css" rel="stylesheet" href="/static/jquery-ui-1.8.18.custom.css">
+<link type="text/css" rel="stylesheet" href="/static/jquery-ui-1.8.19.custom.css">
 <link type="text/css" rel="stylesheet" href="/static/main.css">
 <link type="text/css" rel="stylesheet" href="/static/table.css">
 <link type="text/css" rel="stylesheet" href="/static/ColVis.css">
 <link type="text/css" rel="stylesheet" href="/static/TableTools_JUI.css">
 <link type="text/css" rel="stylesheet" href="/static/jquery.dataTables_themeroller.css">
 <script type="text/javascript" src="/static/js/jquery-1.7.1.min.js"></script>
-<script type="text/javascript" src="/static/js/jquery-ui-1.8.18.custom.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery-ui-1.8.19.custom.min.js"></script>
 <script type="text/javascript" src="/static/js/jquery.dataTables.js"></script>
 <script type="text/javascript" src="/static/js/ColVis.js"></script>
 <script type="text/javascript" src="/static/js/TableTools.js"></script>
@@ -51,6 +51,7 @@ $.ajaxSetup({
 	var table = {
 		iNext: false,
 		dNext: false,
+		intervalID: 0,
 		onDocumentReady: function() {
 			var self = table;
 
@@ -143,7 +144,20 @@ $.ajaxSetup({
 			});
 
 			// Automatically go to next page
-			setInterval("Pane.table.autoNavigate()", 5000);
+			self.intervalID = setInterval("Pane.table.autoNavigate()", 5000);
+
+			// Pause the auto navigator
+			$('#pause').button();
+			$('#pause').click(function(){
+				if(self.intervalID){
+					clearInterval(self.intervalID);
+					self.intervalID = 0;
+					console.log('clear');
+				} else {
+					self.intervalID = setInterval("Pane.table.autoNavigate()", 5000);
+					console.log('set');
+				}
+			});
 
 		},//onDocumentReady end
 		autoNavigate: function(){
@@ -192,7 +206,7 @@ $.ajaxSetup({
 				text: 'TOP 5 Dojo'
 			    },
 			    subtitle: {
-				text: 'Live Broadcasting'
+				text: 'Make Your Dojo Proud!'
 			    },
 			    xAxis: [{
 				categories: [],
@@ -233,7 +247,7 @@ $.ajaxSetup({
 			    	enabled: false
 			    },
 			    title: {
-				text: 'Competition Completed Percentage'
+				text: 'Tournament Completed Percentage'
 			    },
 			    plotOptions: {
 				pie: {
@@ -330,7 +344,9 @@ $.ajaxSetup({
 		</div>
 		<hr />
 		<div class="individual_container">
-		<span style="color: blue; font-size: 20px;"></span>
+		<div style="float: right;">
+			<input type="checkbox" id="pause" /><label for="pause">Pause</label>
+		</div>
 		<h2>Individual Ranking</h2>
 		<table id="member_set">
 			<thead>
@@ -351,26 +367,28 @@ $.ajaxSetup({
 		<hr />
 
 		<div class="dojo_container">
-		<span style="color: blue; font-size: 20px;"></span>
-		<h2>Dojo Ranking</h2>
-		<table id="dojo_set">
-			<thead>
-				<tr>
-					<th>Dojo Title</th>
-					<th>Score</th>
-				</tr>
-			</thead>
-			<tbody>
-			</tbody>
-		</table>
+			<span style="color: blue; font-size: 20px;"></span>
+			<h2>Dojo Ranking</h2>
+			<table id="dojo_set">
+				<thead>
+					<tr>
+						<th>Dojo Title</th>
+						<th>Score</th>
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
 		</div>
+
+		<div id="completed_chart">
+		</div>
+
+		<div id="ranking_chart">
+		</div>
+
 	</div>
 
-	<div id="ranking_chart">
-	</div>
-
-	<div id="completed_chart">
-	</div>
 
 	<form action='/judo/query/' method="POST">
 		{% csrf_token %}

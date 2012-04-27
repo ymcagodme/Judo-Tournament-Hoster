@@ -10,6 +10,12 @@ urlpatterns = patterns('',
     url(r'^query_dojo$', 'members.views.query_dojo'),
     url(r'^query_top5$', 'members.views.query_top5'),
     url(r'^query_completed$', 'members.views.query_completed'),
+    url(r'^members/(?P<pk>\d+)/$', 'members.views.query_member'),
+    url(r'^members/(?P<pk>\d+)/check_in$', 'members.views.check_in_member'),
+    url(r'^members/(?P<pk>\d+)/weight_in$', 'members.views.weight_in_member'),
+
+    url(r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}),
+    url(r'^logout/$', 'django.contrib.auth.views.logout', {}),
 
     url(r'^admin/gen_dojo_result$', 'members.admin_views.gen_dojo_result'),
     url(r'^admin/echo$', 'members.admin_views.echo'),

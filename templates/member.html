@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-us" xml:lang="en-us" >
+<head>
+<meta name="viewport" content="width = device-width">
+<title>Member | Judo Tournament</title>
+
+<link type="text/css" rel="stylesheet" href="/static/jquery-ui-1.8.19.custom.css">
+<link type="text/css" rel="stylesheet" href="/static/member.css">
+<link type="text/css" rel="stylesheet" href="/static/jquery.noty.css">
+<link type="text/css" rel="stylesheet" href="/static/noty_theme_default.css">
+<script type="text/javascript" src="/static/js/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery-ui-1.8.19.custom.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery.noty.js"></script>
+
+<script type="text/javascript">
+$.ajaxSetup({ 
+     beforeSend: function(xhr, settings) {
+         function getCookie(name) {
+             var cookieValue = null;
+             if (document.cookie && document.cookie != '') {
+                 var cookies = document.cookie.split(';');
+                 for (var i = 0; i < cookies.length; i++) {
+                     var cookie = jQuery.trim(cookies[i]);
+                     // Does this cookie string begin with the name we want?
+                 if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                     break;
+                 }
+             }
+         }
+         return cookieValue;
+         }
+         if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+             // Only send the token to relative URLs i.e. locally.
+             xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+         }
+     } 
+});
+</script>
+
+<script type="text/javascript">
+(function($){
+	var member = {
+		onDocumentReady: function() {
+			$('button').button();
+			{% if isChecked %}
+				$('#check_in').button('option', 'label', 'Checked!');
+				$('#check_in').button('disable');
+			{% endif %}
+			$('#check_in').click(function(){
+				$.ajax({
+					url: 'check_in',
+					type: 'POST',
+					success: function(rData){
+						$('#check_in').button('option', 'label', 'Checked!');
+						$('#check_in').button('disable');
+						var noty_id = noty({
+							"text":"Successfully Check In!",
+							"layout":"topCenter",
+							"type":"success",
+							"animateOpen":{"height":"toggle"},
+							"animateClose":{"height":"toggle"},
+							"speed":500,
+							"timeout":5000,
+							"closeButton":true,
+							"closeOnSelfClick":true,
+							"closeOnSelfOver":false
+						});
+					},
+					statusCode:{
+						404: function(){
+							var noty_id = noty({
+								"text":"Error: Cannot find the member!",
+								"layout":"center",
+								"type":"error",
+								"animateOpen":{"height":"toggle"},
+								"animateClose":{"height":"toggle"},
+								"speed":500,
+								"timeout":5000,
+								"closeButton":true,
+								"closeOnSelfClick":true,
+								"closeOnSelfOver":false
+							});
+						},
+						500: function(){
+							var noty_id = noty({
+								"text":"Error: Server error! Please contact the administrator.",
+								"layout":"center",
+								"type":"error",
+								"animateOpen":{"height":"toggle"},
+								"animateClose":{"height":"toggle"},
+								"speed":500,
+								"timeout":5000,
+								"closeButton":true,
+								"closeOnSelfClick":true,
+								"closeOnSelfOver":false
+							});
+						},
+					}
+				});
+			});
+		},//onDocumentReady end
+	};// End of member
+	Pane = {
+		member: member,
+		onDocumentReady: function() {
+			var self = Pane;
+			self.member.onDocumentReady();
+		},
+	};
+	$(Pane.onDocumentReady);
+})(jQuery);
+</script>
+
+</head>
+
+<body>        
+	<div class="top_container">
+		{% if user.is_authenticated %}
+		<a href="/logout/?next={{ request.path }}">Logout</a>
+		{% else %}
+		<a href="{% url django.contrib.auth.views.login %}?next={{request.path}}">Login</a>
+		{% endif %}
+		<div class="error_msg">
+			<h1>{{ error_msg }}</h1>
+		</div>
+		<h1> {{ name }} </h1>
+		{% if user.is_authenticated and not error_msg %}
+		<button id="check_in">Check in</button>
+		<button id="check_in">Weight in</button>
+		{% endif %}
+
+	</div>
+
+</body>
+</html>
+

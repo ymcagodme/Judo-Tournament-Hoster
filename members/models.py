@@ -15,13 +15,15 @@ GENDER_CHOICE = (
 )
 
 class Tournament(models.Model):
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, unique=True)
     logo = models.ImageField(upload_to='logo/', blank=True)
+    domain_name = models.CharField(max_length=100, unique=True, default='judomatch.com')
 
     def __unicode__(self):
         return self.title
     class Meta:
-        verbose_name = 'Tournament title'
+        verbose_name = 'Tournament parameter'
+        verbose_name_plural = 'Tournament parameter'
 
 class Mat(models.Model):
     user = models.ForeignKey('auth.User')
@@ -66,14 +68,14 @@ class Member(models.Model):
     def __unicode__(self):
         return '%s %s' % (self.first_name, self.last_name)
 
+    class Meta:
+        verbose_name = 'Competitor'
+
 def member_pre_save(sender, instance, **kwargs):    
     if not instance.pk:
         instance._QRCODE = True
     else:
-        if hasattr(instance, '_QRCODE'):
-            instance._QRCODE = False
-        else:
-            instance._QRCODE = True
+        setattr(instance, '_QRCODE', False)
 models.signals.pre_save.connect(member_pre_save, sender=Member)
 
 def member_post_save(sender, instance, **kwargs):
@@ -82,7 +84,12 @@ def member_post_save(sender, instance, **kwargs):
         if instance.qr_image:
             instance.qr_image.delete()
         qr = QRCode(4, QRErrorCorrectLevel.H)
-        qr.addData(str(instance.pk)) # Only accept string
+        #FIXME: Because users need to add domain name first, then we can generate the QR code with specific domain name
+        try: 
+            domain_name = (Tournament.objects.all()[0]).domain_name
+        except IndexError:
+            domain_name = 'judomatch.com'
+        qr.addData('%s/members/%i' % (domain_name, instance.pk) ) # Only accept string <---- Add content to QR Code
         qr.make()
         image = qr.makeImage()
         ##Save image to string buffer

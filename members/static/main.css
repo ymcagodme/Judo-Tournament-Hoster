@@ -11,20 +11,15 @@ body{
 }
 
 .dojo_container{
-	width: 25%;
+	width: 185px;
 	float: left;
 }
 
 #ranking_chart{
-	float: left;
-	margin-left: 4em;
-	height:350px;
-	width: 400px;
+	float: right;
+	margin-right: 1em;
 }
 
 #completed_chart{
-	float: left;
-	margin-left: 3em;
-	height:350px;
-	width: 360px;
+	float: right;
 }

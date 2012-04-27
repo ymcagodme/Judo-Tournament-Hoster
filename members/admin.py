@@ -108,12 +108,8 @@ class TournamentAdmin(admin.ModelAdmin):
     def add_view(self, request):
         if request.method == "POST":
             if Tournament.objects.count() >= 1:
-                # redirect to a page saying 
-                # you can't create more than one
                 return HttpResponse('You only can have one tournament description at the time.')
         return super(TournamentAdmin, self).add_view(request)
-
-
 
 admin.site.register(Member, MemberAdmin)
 admin.site.register(Division, DivisionAdmin)

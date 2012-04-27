@@ -2,6 +2,7 @@ from datetime import datetime
 from datetime import date
 import time
 import csv
+import json
 
 # SEE: http://www.traddicts.org/webdevelopment/flexible-and-simple-json-serialization-for-django/ 
 from fix_json import JSONSerializer
@@ -10,7 +11,9 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.core import serializers
 from django.template import RequestContext
 from django.shortcuts import render_to_response
-import json
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
+from django.http import HttpResponseNotFound
 
 from members.models import Member, Tournament
 
@@ -89,3 +92,35 @@ def query_completed(request):
     jsonSerializer = JSONSerializer()
     data = jsonSerializer.serialize(data_object)
     return HttpResponse(data, mimetype="application/json")
+
+def query_member(request, pk):
+    try: 
+        member = Member.objects.filter(pk=pk)[0]
+    except IndexError: 
+        error_msg = 'Cannot find the member.'
+        return render_to_response('member.html', {'error_msg': error_msg }, context_instance=RequestContext(request))
+    is_checked = member.check_in
+    weight = member.weight
+    data = {
+        'name': member,
+        'isChecked': is_checked,
+        'weight': weight
+    }
+    return render_to_response('member.html', data, context_instance=RequestContext(request))
+
+@login_required
+def check_in_member(request, pk):
+    if request.method == 'POST':
+        try: 
+            member = Member.objects.filter(pk=pk)[0]
+        except IndexError: 
+            return HttpResponse(HttpResponseNotFound)
+        member.check_in = True
+        member.save()
+        return HttpResponse(True)
+    else:
+        return HttpResponse(False)
+
+@login_required
+def weight_in_member(request, pk):
+    pass
