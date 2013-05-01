@@ -4,7 +4,7 @@ import paramiko
 
 server = "10.42.43.10"
 username = "root"
-password = "u83jp62k7"
+password = ""
 cmd = '/Applications/biteSMS.app/biteSMS -send -carrier 5622994141 "Yo"'
 
 ssh = paramiko.SSHClient()
